@@ -123,6 +123,7 @@ class HtmlReport(Plugin):
         self.test_stderr_redirector = OutputRedirector(sys.stderr)
 
         self.verbosity = verbosity
+        self.test_start_time = datetime.now()
 
     def startTest(self, test):
         # just one buffer for both stdout and stderr
@@ -205,7 +206,7 @@ class HtmlReport(Plugin):
             self.stats = {'errors': 0, 'failures': 0, 'passes': 0, 'skipped': 0}
             self.report_data = defaultdict(Group)
             htmlfile_dirname = os.path.dirname(options.html_file)
-            if not os.path.exists(htmlfile_dirname):
+            if not os.path.exists(os.path.abspath(htmlfile_dirname)):
                 os.makedirs(htmlfile_dirname)
             self.report_file = codecs.open(options.html_file, 'w', self.encoding, 'replace')
             self.report_template_filename = options.html_template
@@ -222,7 +223,8 @@ class HtmlReport(Plugin):
         self.report_file.write(self.jinja.get_template(os.path.basename(self.report_template_filename)).render(
             report=self.report_data,
             stats=self.stats,
-            rawoutput=self._format_output(self.complete_global_output())
+            rawoutput=self._format_output(self.complete_global_output()),
+            timestamp=datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
         ))
         self.report_file.close()
         if self.config.verbosity > 1:
@@ -267,7 +269,7 @@ class HtmlReport(Plugin):
             'type': type,
             'errtype': nice_classname(err[0]),
             'message': exc_message(err),
-            'tb': tb,
+            'tb': self._format_output(tb),
             'output': self._format_output(self.complete_test_output(exc_message(err), tb)),
             'shortDescription': test.shortDescription(),
             'time': str(datetime.now() - self.test_start_time),
@@ -291,7 +293,7 @@ class HtmlReport(Plugin):
             'failed': True,
             'errtype': nice_classname(err[0]),
             'message': exc_message(err),
-            'tb': tb,
+            'tb': self._format_output(tb),
             'output': self._format_output(self.complete_test_output(exc_message(err), tb)),
             'shortDescription': test.shortDescription(),
             'time': str(datetime.now() - self.test_start_time),
