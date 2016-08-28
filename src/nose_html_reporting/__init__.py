@@ -247,12 +247,7 @@ class HtmlReport(Plugin):
     def addError(self, test, err, capt=None):
         """Add error output to Xunit report.
         """
-        exc_type, exc_val, tb = err
-        tb = ''.join(traceback.format_exception(
-            exc_type,
-            exc_val if isinstance(exc_val, exc_type) else exc_type(exc_val),
-            tb
-        ))
+        tb = ''.join(traceback.format_exception(*err))
         name = id_split(test.id())
         group = self.report_data[name[0]]
         if issubclass(err[0], SkipTest):
@@ -278,12 +273,7 @@ class HtmlReport(Plugin):
     def addFailure(self, test, err, capt=None):
         """Add failure output to Xunit report.
         """
-        exc_type, exc_val, tb = err
-        tb = ''.join(traceback.format_exception(
-            exc_type,
-            exc_val if isinstance(exc_val, exc_type) else exc_type(exc_val),
-            tb
-        ))
+        tb = ''.join(traceback.format_exception(*err))
         name = id_split(test.id())
         group = self.report_data[name[0]]
         self.stats['failures'] += 1
